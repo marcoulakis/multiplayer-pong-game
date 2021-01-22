@@ -1,11 +1,13 @@
 import './App.css';
 import Pong from './components/pong'
-
+import {GameProvider} from './context/gameContext'
 
 function App() {
   return (
     <div className="App">
-      <Pong />
+      <GameProvider>
+        <Pong />
+      </GameProvider>
     </div>
   );
 }

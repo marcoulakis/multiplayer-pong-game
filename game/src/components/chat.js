@@ -8,7 +8,7 @@ const Chat = (props) => {
 
     return(
         <div style={{flex: 1 }}>
-            <div style={{whiteSpace: 'pre-wrap'}}>{props.messages}</div>
+            <div style={{whiteSpace: 'pre-wrap'}}>{props.messages.join('\n\n')}</div>
             <input type="text" value={messageToSend}
              onChange={(e) => setMessageToSend(e.target.value)} />
 
