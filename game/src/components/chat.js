@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
-
+import { Button, Form, Container } from 'react-bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const Chat = (props) => {
 
@@ -7,14 +8,17 @@ const Chat = (props) => {
     const [messageToSend, setMessageToSend] = useState('');
 
     return(
-        <div style={{flex: 1 }}>
-            <div style={{whiteSpace: 'pre-wrap'}}>{props.messages.join('\n\n')}</div>
-            <input type="text" value={messageToSend}
-             onChange={(e) => setMessageToSend(e.target.value)} />
+        <Container className="d-flex flex-column">
+            <Form.Text style={{whiteSpace: 'pre-wrap'}}>{props.messages.join('\n')}</Form.Text>
+            <Container className="d-flex flex-column align-bottom">
+                <Form className="align-bottom d-flex flex-row">
+                    <Form.Control className="align-self-start" type="text" value={messageToSend}
+                    onChange={(e) => setMessageToSend(e.target.value)} />
 
-            <button onClick={() => props.sendMessage(messageToSend)}>Send</button>
-
-        </div>
+                        <Button style={{marginLeft: '6px'}} className="align-self-end" onClick={() => props.sendMessage(messageToSend)}>Send</Button>
+                </Form>
+            </Container>    
+        </Container>
     );
 }
 
