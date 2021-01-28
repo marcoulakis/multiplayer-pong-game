@@ -90,7 +90,7 @@ const leaveRoom = (socketId) => {
             room.player2 = undefined;
         }
 
-        if(!room.player1 && !room.player2){
+        if(room.player1 == undefined && room.player2 == undefined){
             delete game.rooms[socketId];
         }
     }

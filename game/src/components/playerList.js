@@ -6,8 +6,8 @@ const PlayerList = (props) => {
     const [players, setPlayers] = useState({});
 
     return(
-        <Card className="justify-content-start" style={{height: '95vh'}}>
-            <Card.Body>
+        <div>
+            <Card.Body className="bg-light">
                 <Card.Title>Players List:</Card.Title>
                 {Object.keys(props.players)
                     .map((key) => (
@@ -15,7 +15,7 @@ const PlayerList = (props) => {
                     ))
                 }
             </Card.Body>
-        </Card>
+        </div>
     );
 }
 

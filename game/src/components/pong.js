@@ -1,47 +1,28 @@
 import React, {useContext} from 'react';
 import PlayerList from './playerList';
 import Chat from './chat';
-import {GameContext, sendMessage, createRoom, quitRoom, joinRoom} from '../context/gameContext';
-import { Card,  Button, Form, Container, Alert } from 'react-bootstrap';
+import { GameContext, sendMessage } from '../context/gameContext';
+import { Card, Container, Alert } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import Rooms from './rooms'
 
 const Pong = () => {
-    const { isConnected, players, messages, player, rooms } = useContext(GameContext)
+    const { isConnected, players, messages } = useContext(GameContext)
     
     return(
-        <div className="d-flex flex-row" style={{margin: '2vh auto', width: '100%', height: '95vh'}}>                
-                <Container style={{ width: '24%', marginLeft: '2%', height: '95vh'}} className="align-self-start align-items-center">
+        <div className="d-flex flex-row bg-light" style={{margin: '2vh auto', width: '100%', height: '95vh'}}> 
+            {!isConnected && 
+                <div className="fixed-top" style={{ alignItems: 'center', display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center'}}>
+                    <Alert style={{margin: '1.2vh', textAlign: 'center'}} variant="info">Connecting...</Alert>
+                </div>
+            }               
+            <Container style={{ width: '35%', marginLeft: '2%', height: '95vh'}} className="align-self-start align-items-center bg-light">
+                <Card className="justify-content-start bg-light" style={{height: '95vh'}}>
+                    <Rooms/>
                     <PlayerList players={players}/>
-                </Container>
-                <Container style={{ height: '95vh'}}className="d-block align-self-center align-items-center" >
-                                {!isConnected && 
-                                <Alert variant="info">Connecting...</Alert>
-                            }
-                            {!player.room &&
-                                <div>
-                                    <Button onClick={createRoom}>Create Room</Button>
-                                    {Object.keys(rooms).map((key) =>
-                                    <Form.Text key={`room_${key}`}>
-                                        {rooms[key].name}
-                                        <Button onClick={() => joinRoom(key)} disabled={rooms[key].player1 && rooms[key].player2}>Join Room</Button>  
-                                    </Form.Text>)}
-                                </div>
-                            
-                            }
-                            {
-                                player.room 
-                                && <div>
-                                        {rooms[player.room] && rooms[player.room].player1 && rooms[player.room].player2 
-                                            ?<Button onClick={quitRoom}>Start Game</Button>
-                                            :<>Waiting for another player to join. </>
-                                            
-                                        }
-                                        <Button onClick={quitRoom}>Quit Room</Button>
-                                    </div>
-
-                            }
-                        <Chat sendMessage={sendMessage} messages={messages}/>
-                    </Container>
+                </Card>
+            </Container>
+                <Chat sendMessage={sendMessage} messages={messages}/>
         </div>
     );
 }
