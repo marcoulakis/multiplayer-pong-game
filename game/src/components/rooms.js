@@ -5,14 +5,18 @@ import { GameContext, createRoom, quitRoom, joinRoom } from '../context/gameCont
 const Rooms = () => {
 
     const { player, rooms, room } = useContext(GameContext);
-
+    if (room != undefined){
+        console.log(room.name);
+    }
     return (
-        
         <Card.Header style={{ width: '100%'}} className="d-flex align-self-center justify-content-center align-items-center bg-light" >
                 {!player.room
                 ?
                     <div style={{ display: 'grid', width: '100%'}}>
                         <Button style={{ marginBottom: '0.5rem', marginTop: "0", width: "100%"}}variant="outline-secondary" onClick={createRoom}>Create Room</Button>
+                        <Card.Title>
+                            Rooms:
+                        </Card.Title>
                         {Object.keys(rooms).map((key) =>
                         <Card.Text key={`room_${key}`}>
                             {rooms[key].name}
@@ -20,10 +24,11 @@ const Rooms = () => {
                         </Card.Text>)}
                     </div>
                 :
-                    <div style={{ display: 'grid', width: '100%'}}>
+                    <div style={{ width: '100%'}}>
                         <Card.Title>
-                        {player.room}
-
+                            {room!=undefined &&
+                            room.name
+                            }
                         </Card.Title>
 
                             <Button style={{ marginBottom: '0.5rem', marginTop: "0", width: "100%"}} variant="outline-danger" onClick={quitRoom}>Quit Room</Button>
@@ -32,7 +37,7 @@ const Rooms = () => {
                                 :<Card.Text>Waiting for another player to join. </Card.Text>
                                 
                             }
-                        </div>
+                    </div>
 
                 }
         </Card.Header>

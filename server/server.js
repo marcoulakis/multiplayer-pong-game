@@ -8,7 +8,8 @@ const sockets = socketio(server);
 
 const game = {
     players : {},
-    rooms: {}
+    rooms: {},
+    match: {}
 }
 
 app.get('/', (req, res) => res.send ('Hello World!'));
@@ -26,7 +27,7 @@ sockets.on('connection', (socket) => {
 
     socket.on('disconnect', () => {
         sendMessage(game.players[socket.id], 'disconnected.')
-        leaveRoom(socket.id);
+        leaveRoom(socket);
 
         delete game.players[socket.id];
         refreshPlayers();
@@ -41,7 +42,7 @@ sockets.on('connection', (socket) => {
         socket.join(socket.id);
 
         game.rooms[socket.id] = { 
-            name: `${game.players[socket.id].name}'s room.`,
+            name: `${game.players[socket.id].name}'s Room.`,
             player1: socket.id,
             player2: undefined
         }
@@ -54,7 +55,7 @@ sockets.on('connection', (socket) => {
     });
 
     socket.on('QuitRoom', () => {
-        leaveRoom(socket.id);
+        leaveRoom(socket);
 
         refreshRooms();
         refreshPlayers();
@@ -69,19 +70,30 @@ sockets.on('connection', (socket) => {
 
         game.players[socket.id].room = roomId;
 
+        const room = game.rooms[roomId];
+        if (room.player1 && room.player2){
+            game.match[roomId] = { 
+                score1: 0,
+                score2: 0,
+                status: 'START'
+            }
+        }
+
         refreshPlayers();
         refreshRooms();
+        refreshMatch(roomId);
         sendMessage(game.players[socket.id], 'joined the room.');
     });
 });
 
-const leaveRoom = (socketId) => {
-
-    console.log(game.rooms);
+const leaveRoom = (socket) => {
+    const socketId = socket.id;
     const roomId = game.players[socketId].room;
     const room = game.rooms[roomId];
      
     if(room){
+        socket.leave(roomId);
+
         game.players[socketId].room = undefined;
 
         if(socketId === room.player1){
@@ -106,6 +118,11 @@ const refreshPlayers = () => {
 const refreshRooms = () => {
     sockets.emit('RoomsRefresh', game.rooms);
 }
+
+const refreshMatch = (roomId) => {
+    sockets.to(roomId).emit('MatchRefresh', game.match[roomId]);
+}
+
 
 const port = 4000;
 server.listen(port, () => console.log(`Example app listening on port ${port}!`));

@@ -35,6 +35,11 @@ const reducer = (state, action) => {
                 ...state,
                 messages: [...state.messages, action.payload]
             }
+        case 'MATCH':
+            return {
+                ...state,
+                match: action.payload
+            }
         default:
             return state;
     }
@@ -51,7 +56,8 @@ const initialState ={
     room: {},
     rooms: {},
     players: {},
-    messages: []
+    messages: [],
+    match: {}
 }
 
 const GameProvider = (props) => {
@@ -77,6 +83,9 @@ const GameProvider = (props) => {
         socket.on('RoomsRefresh', (players) => {
             dispatch({type: 'ROOMS', payload: players});
             dispatch({type: 'ROOM', payload: socket.id});
+        })
+        socket.on('MatchRefresh', (match) => {
+            dispatch({type: 'MATCH', payload: match});
         })
         socket.open();
     }, []);
