@@ -1,13 +1,10 @@
 import React, { useContext } from 'react';
 import { Card, Form, Button } from 'react-bootstrap';
-import { GameContext, createRoom, quitRoom, joinRoom } from '../context/gameContext';
+import { GameContext, createRoom, quitRoom, joinRoom, startGame } from '../context/gameContext';
 
 const Rooms = () => {
 
     const { player, rooms, room } = useContext(GameContext);
-    if (room != undefined){
-        console.log(room.name);
-    }
     return (
         <Card.Header style={{ width: '100%'}} className="d-flex align-self-center justify-content-center align-items-center bg-light" >
                 {!player.room
@@ -33,7 +30,7 @@ const Rooms = () => {
 
                             <Button style={{ marginBottom: '0.5rem', marginTop: "0", width: "100%"}} variant="outline-danger" onClick={quitRoom}>Quit Room</Button>
                             {rooms[player.room] && rooms[player.room].player1 && rooms[player.room].player2 
-                                ?<Button style={{ marginBottom: '0.5rem', marginTop: "0", width: "100%"}} variant="outline-success" onClick={quitRoom}>Start Game</Button>
+                                ?<Button style={{ marginBottom: '0.5rem', marginTop: "0", width: "100%"}} variant="outline-success" onClick={() => startGame()}>Start Game</Button>
                                 :<Card.Text>Waiting for another player to join. </Card.Text>
                                 
                             }

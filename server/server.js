@@ -6,13 +6,17 @@ const app = express();
 const server = http.createServer(app);
 const sockets = socketio(server);
 
+const gameConfig = {
+    width: 580,
+    height: 320
+}
+
 const game = {
     players : {},
     rooms: {},
     match: {}
 }
 
-app.get('/', (req, res) => res.send ('Hello World!'));
 
 sockets.on('connection', (socket) => {
     console.log(`${socket.id} connected!`)
@@ -61,6 +65,13 @@ sockets.on('connection', (socket) => {
         refreshPlayers();
     })
 
+    socket.on('StartGame', () => {
+        startGame(socket);
+
+        refreshRooms();
+        refreshPlayers();
+    })
+
     socket.on('JoinRoom', (roomId) => {
         socket.join(roomId);
 
@@ -73,10 +84,14 @@ sockets.on('connection', (socket) => {
         const room = game.rooms[roomId];
         if (room.player1 && room.player2){
             game.match[roomId] = { 
+                gameConfig,
+                player1: { ready: false },
+                player2: { ready: false },
                 score1: 0,
                 score2: 0,
-                status: 'START'
+                status: 'READY'
             }
+
         }
 
         refreshPlayers();
@@ -84,6 +99,28 @@ sockets.on('connection', (socket) => {
         refreshMatch(roomId);
         sendMessage(game.players[socket.id], 'joined the room.');
     });
+
+    socket.on('GameLoaded', () => {
+        const roomId = game.players[socket.id].room;
+        const match = game.match[roomId];
+        const player = 'player' + (game.rooms[roomId].player1 == socket.id ? 1 : 2);
+
+        match[player] = { ready: true };
+
+        if (match.player1.ready && match.player2.ready) {
+            match.status = 'PLAY'
+            match.ball = {
+                width: 5,
+                xdirection: 1,
+                ydirection: 1,
+                xspeed: 2.8,
+                yspeed: 2.2,
+                x: gameConfig.width / 2,
+                y: gameConfig.height / 2
+            };
+        }
+    });
+
 });
 
 const leaveRoom = (socket) => {
@@ -92,21 +129,90 @@ const leaveRoom = (socket) => {
     const room = game.rooms[roomId];
      
     if(room){
-        socket.leave(roomId);
+        const match = game.match[roomId];
 
         game.players[socketId].room = undefined;
+        
+        const playerNumber = 'player' + (socketId === room.player1 ? 1 : 2)
 
-        if(socketId === room.player1){
-            room.player1 = undefined;
-        }else{
-            room.player2 = undefined;
+        room[playerNumber] = undefined;
+
+        if(match.status == 'START' || match.status == 'PLAY'){
+            match[playerNumber] = undefined;
+            match.status = 'END';
+            match.message = `Player ${game.players[socketId].name} has disconnected.`;
         }
 
-        if(room.player1 == undefined && room.player2 == undefined){
-            delete game.rooms[socketId];
+        if(!room.player1 && !room.player2){
+            delete game.rooms[roomId];
+            if (match){
+                delete game.match[roomId]
+            }
         }
+
+
+        socket.leave(roomId);
+
     }
 }
+
+const startGame = (socket) => {
+    const socketId = socket.id;
+    const roomId = game.players[socketId].room;
+
+    const room = game.rooms[roomId];
+    if (room.player1 && room.player2) {
+        game.match[roomId] = {
+            gameConfig,
+            player1: { ready: false },
+            player2: { ready: false },
+            score1: 0,
+            score2: 0, 
+            status: 'START'
+        
+        }
+        gameInProgress(roomId);
+    }
+
+    refreshMatch(roomId);
+}
+
+const gameInProgress = (roomId) => {
+    const match = game.match[roomId];
+    if(!match || match === 'END')
+        return;
+
+    const { ball } = match;
+
+    switch(match.status) {
+        case 'PLAY':
+            const xpos = ball.x + ball.xspeed * ball.xdirection;
+            const ypos = ball.y + ball.yspeed * ball.ydirection;
+
+            ball.x = xpos;
+            ball.y = ypos;
+
+            if(xpos > match.gameConfig.width - ball.width || xpos < ball.width){
+                ball.xdirection *= -1;
+            }
+            if(ypos > match.gameConfig.height - ball.width || ypos < ball.width){
+                ball.ydirection *= -1;
+            }
+            if(xpos < ball.width){
+                match.score2++;
+            }
+            if(xpos > match.gameConfig.width - ball.width){
+                match.score1++
+            }
+            break;
+                
+    }
+
+    refreshMatch(roomId)
+
+    setTimeout(() => gameInProgress(roomId), 1000 / 60);
+}
+
 const sendMessage = (player, message) => {
     sockets.emit('ReceiveMessage', `${player.name}: ${message}`);
 }
@@ -120,8 +226,10 @@ const refreshRooms = () => {
 }
 
 const refreshMatch = (roomId) => {
-    sockets.to(roomId).emit('MatchRefresh', game.match[roomId]);
+    sockets.to(roomId).emit('MatchRefresh', game.match[roomId] || {});
 }
+
+app.get('/', (req, res) => res.send ('Hello World!'));
 
 
 const port = 4000;

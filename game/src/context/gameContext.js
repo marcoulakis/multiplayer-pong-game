@@ -45,7 +45,7 @@ const reducer = (state, action) => {
     }
 };
 
-const socket = socketClient('http://localhost:4000', {
+const socket = socketClient('localhost:4000', {
     autoConnect: false,
 });
 
@@ -110,9 +110,15 @@ const quitRoom = () => {
     socket.emit('QuitRoom');
 }
 
+const startGame = (roomId) => {
+    socket.emit('StartGame', roomId);
+}
+
 const joinRoom = (roomId) => {
     socket.emit('JoinRoom', roomId);
-
+}
+const gameLoaded = () => {
+    socket.emit('GameLoaded')
 }
 
 export {GameContext, 
@@ -120,5 +126,7 @@ export {GameContext,
     sendMessage, 
     createRoom, 
     quitRoom,
-    joinRoom
+    joinRoom,
+    startGame,
+    gameLoaded
 };

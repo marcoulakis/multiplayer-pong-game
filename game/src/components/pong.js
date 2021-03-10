@@ -5,6 +5,7 @@ import { GameContext, sendMessage } from '../context/gameContext';
 import { Card, Container, Alert } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Rooms from './rooms'
+import { Game } from './game';
 
 const Pong = () => {
     const { isConnected, players, messages, match } = useContext(GameContext)
@@ -16,15 +17,34 @@ const Pong = () => {
                     <Alert style={{margin: '1.2vh', textAlign: 'center'}} variant="info">Connecting...</Alert>
                 </div>
             }
-            {match.status && <div>game</div>}               
-            <Container style={{ width: '35%', marginLeft: '2%', height: '95vh'}} className="align-self-start align-items-center bg-light">
-                <Card className="justify-content-start bg-light" style={{height: '95vh'}}>
-                    <Rooms/>
-                    <PlayerList players={players}/>
-                </Card>
-            </Container>
-                <Chat sendMessage={sendMessage} messages={messages}/>
-        </div>
+
+            {match.status === 'START'
+                &&
+                <div><Game/></div>
+
+            }
+
+            {match.status === 'PLAY'
+                &&
+                <div><Game/></div>
+
+            }
+
+            {match.status !== 'PLAY'   
+                &&
+                <>               
+                    <Container style={{ width: '35%', marginLeft: '2%', height: '95vh'}} className="align-self-start align-items-center bg-light">
+                        <Card className="justify-content-start bg-light" style={{height: '95vh'}}>
+                            <Rooms/>
+                            <PlayerList players={players}/>
+                        </Card>
+                    </Container>
+                    <Chat sendMessage={sendMessage} messages={messages}/>
+                </>
+            
+            }
+        </div> 
+        
     );
 }
 
