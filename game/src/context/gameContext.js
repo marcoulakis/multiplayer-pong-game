@@ -45,7 +45,7 @@ const reducer = (state, action) => {
     }
 };
 
-const socket = socketClient('localhost:4000', {
+const socket = socketClient('http://localhost:4000', {
     autoConnect: false,
 });
 

@@ -14,9 +14,6 @@ server/.pnp.js
 /server/coverage
 
 
-# production
-/game/build
-/server/build
 
 # misc
 .DS_Store

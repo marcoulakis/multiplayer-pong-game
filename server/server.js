@@ -1,6 +1,7 @@
 import express from "express";
 import http from "http";
 import socketio from "socket.io";
+import path from "path";
 
 const app = express();
 const server = http.createServer(app);
@@ -349,7 +350,7 @@ const checkBallColision= (match) => {
         match.score1++;
         rematch(match);
     }
-};
+}
 const rematch = (match) => {
     const {ball, gameConfig} = match;
     ball.xdirection *= -1;
@@ -373,8 +374,16 @@ const refreshMatch = (roomId) => {
     sockets.to(roomId).emit('MatchRefresh', game.match[roomId] || {});
 }
 
-app.get('/', (req, res) => res.send ('Hello World!'));
+app.use(express.static(path.resolve()));
+app.use(express.static(path.join(path.resolve(), 'build')));
 
+app.get('/ping', function (req, res) {
+ return res.send('pong');
+});
 
-const port = 4000;
-server.listen(port, () => console.log(`Example app listening on port ${port}!`));
+app.get('/*', function (req, res) {
+  res.sendFile(path.join(path.resolve(), 'build', 'index.html'));
+});
+
+const PORT = process.env.PORT || 4000;
+server.listen(PORT, () => console.log(`Server rodando na porta ${PORT}!`));
