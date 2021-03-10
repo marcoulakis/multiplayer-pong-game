@@ -110,6 +110,10 @@ const quitRoom = () => {
     socket.emit('QuitRoom');
 }
 
+const quitMatch = () => {
+    socket.emit('QuitMatch');
+}
+
 const startGame = (roomId) => {
     socket.emit('StartGame', roomId);
 }
@@ -121,12 +125,24 @@ const gameLoaded = () => {
     socket.emit('GameLoaded')
 }
 
+let lastTypeEmited = undefined;
+const sendKey = (type, key) => {
+    if(lastTypeEmited === type){
+        return;
+    }
+
+    lastTypeEmited = type;
+    socket.emit('SendKey', {type: type, key: key})
+};
+
 export {GameContext, 
     GameProvider, 
     sendMessage, 
     createRoom, 
     quitRoom,
+    quitMatch,
     joinRoom,
     startGame,
-    gameLoaded
+    gameLoaded, 
+    sendKey
 };

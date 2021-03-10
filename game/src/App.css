@@ -3,3 +3,23 @@
   width: 100%;
 }
 
+.game-message {
+  position: absolute;
+  width: 300px;
+  background-color: #ffffffe6;
+  padding: 20px;
+  text-align: center;
+  left: 39%;
+  top: 35%;
+}
+
+.button-default{
+  margin-bottom: 0.5rem;
+  margin-top: 0px;
+  width: 100%
+}
+
+.game-loaded-container{
+  height: 100%;
+  width: 100%;
+}

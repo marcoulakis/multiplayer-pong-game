@@ -1,6 +1,6 @@
 import React, {useContext} from 'react';
 import PlayerList from './playerList';
-import Chat from './chat';
+import { Chat } from './chat';
 import { GameContext, sendMessage } from '../context/gameContext';
 import { Card, Container, Alert } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -20,17 +20,17 @@ const Pong = () => {
 
             {match.status === 'START'
                 &&
-                <div><Game/></div>
+                <div className="d-flex flex-row justify-content-center align-items-center flex-wrap game-loaded-container" ><Game/></div>
 
             }
 
             {match.status === 'PLAY'
                 &&
-                <div><Game/></div>
+                <div className="d-flex flex-row justify-content-center align-items-center flex-wrap game-loaded-container" ><Game/></div>
 
             }
 
-            {match.status !== 'PLAY'   
+            {match.status !== 'PLAY' && match.status !== 'START'   
                 &&
                 <>               
                     <Container style={{ width: '35%', marginLeft: '2%', height: '95vh'}} className="align-self-start align-items-center bg-light">

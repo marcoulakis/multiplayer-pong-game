@@ -10,7 +10,7 @@ const Rooms = () => {
                 {!player.room
                 ?
                     <div style={{ display: 'grid', width: '100%'}}>
-                        <Button style={{ marginBottom: '0.5rem', marginTop: "0", width: "100%"}}variant="outline-secondary" onClick={createRoom}>Create Room</Button>
+                        <Button className="button-default" variant="outline-secondary" onClick={createRoom}>Create Room</Button>
                         <Card.Title>
                             Rooms:
                         </Card.Title>
@@ -28,9 +28,9 @@ const Rooms = () => {
                             }
                         </Card.Title>
 
-                            <Button style={{ marginBottom: '0.5rem', marginTop: "0", width: "100%"}} variant="outline-danger" onClick={quitRoom}>Quit Room</Button>
+                            <Button className="button-default" variant="outline-danger" onClick={quitRoom}>Quit Room</Button>
                             {rooms[player.room] && rooms[player.room].player1 && rooms[player.room].player2 
-                                ?<Button style={{ marginBottom: '0.5rem', marginTop: "0", width: "100%"}} variant="outline-success" onClick={() => startGame()}>Start Game</Button>
+                                ?<Button className="button-default" variant="outline-success" onClick={() => startGame()}>Start Game</Button>
                                 :<Card.Text>Waiting for another player to join. </Card.Text>
                                 
                             }
