@@ -1,12 +1,11 @@
 import React, { useEffect, useContext } from 'react';
 import SVG, {Circle, Rect, Line} from 'react-svg-draw';
-import { GameContext, gameLoaded, quitMatch, sendKey } from '../context/gameContext';
-import { Button } from 'react-bootstrap';
+import { GameContext, gameLoaded, sendKey } from '../context/gameContext';
 
 const Game = () => {
 
     const { match } = useContext(GameContext);
-    const { gameConfig, ball, message, player1, player2 } = match;
+    const { gameConfig, ball, player1, player2 } = match;
 
     useEffect(() => {
         gameLoaded();
@@ -16,6 +15,8 @@ const Game = () => {
             const { key, type } = e;
 
             switch (key){
+                default:
+                    break;
                 case 'ArrowUp':
                 case 'ArrowDown':
                     sendKey(type,key);
@@ -100,12 +101,6 @@ const Game = () => {
                         />
                 }
             </SVG>
-            {message &&
-                <div className="game-message">
-                    <h4>{message}</h4>
-                    <Button className="button-default" variant="outline-danger" onClick={quitMatch}>Quit</Button>
-                </div>
-            }
         </div>
     )
     

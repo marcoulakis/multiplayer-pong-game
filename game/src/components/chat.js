@@ -4,7 +4,6 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 const Chat = (props) => {
     
-    const [messages, setMessages] = useState('');
     const [messageToSend, setMessageToSend] = useState('');
     
     const sendMessage = () => {
@@ -35,6 +34,8 @@ const Chat = (props) => {
                         e.preventDefault();
                         document.getElementById("sendTheMessage").click();
                     }
+                    break;
+                default:
                     break;
             }
         };

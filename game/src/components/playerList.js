@@ -1,9 +1,8 @@
-import React, {useState} from 'react';
+import React  from 'react';
 import { Card } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const PlayerList = (props) => {
-    const [players, setPlayers] = useState({});
 
     return(
         <div>

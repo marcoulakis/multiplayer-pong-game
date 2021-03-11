@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Card, Form, Button } from 'react-bootstrap';
+import { Card,  Button } from 'react-bootstrap';
 import { GameContext, createRoom, quitRoom, joinRoom, startGame } from '../context/gameContext';
 
 const Rooms = () => {
@@ -23,7 +23,7 @@ const Rooms = () => {
                 :
                     <div style={{ width: '100%'}}>
                         <Card.Title>
-                            {room!=undefined &&
+                            {room !== undefined &&
                             room.name
                             }
                         </Card.Title>

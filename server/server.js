@@ -2,6 +2,7 @@ import express from "express";
 import http from "http";
 import socketio from "socket.io";
 import path from "path";
+import { match } from "assert";
 
 const app = express();
 const server = http.createServer(app);
@@ -9,7 +10,8 @@ const sockets = socketio(server);
 
 const gameConfig = {
     width: 580,
-    height: 320
+    height: 320,
+    maxScore: 10,
 }
 
 const game = {
@@ -22,7 +24,7 @@ const game = {
 sockets.on('connection', (socket) => {
     console.log(`${socket.id} connected!`)
 
-    const name = 'Player_' + socket.id.substr(0, 5);
+    const name = 'Player ' + socket.id.substr(0, 5);
     game.players[socket.id] = { name };
 
     sendMessage(game.players[socket.id], 'connected!');
@@ -30,11 +32,12 @@ sockets.on('connection', (socket) => {
     refreshRooms();
 
 
-    socket.on('disconnect', () => {
+    socket.on('disconnect', async () => {
         sendMessage(game.players[socket.id], 'disconnected.')
         leaveRoom(socket);
 
-        delete game.players[socket.id];
+        await setTimeout(() => {delete game.players[socket.id];}, 5000);
+
         refreshPlayers();
         refreshRooms();
     });
@@ -66,18 +69,12 @@ sockets.on('connection', (socket) => {
         refreshPlayers();
     });
 
-    socket.on('QuitMatch', () => {
-        leaveMatch(socket);
-
-        refreshRooms();
-        refreshPlayers();
-    });
     
     socket.on('StartGame', () => {
-        startGame(socket);
 
         refreshRooms();
         refreshPlayers();
+        startGame(socket);
     });
 
     socket.on('JoinRoom', (roomId) => {
@@ -100,7 +97,7 @@ sockets.on('connection', (socket) => {
                     y: gameConfig.height / 2 - 40,
                     height: 80,
                     width: 10,
-                    speed: 5
+                    speed: 10
                 },
                 player2: { 
                     ready: false,
@@ -108,7 +105,7 @@ sockets.on('connection', (socket) => {
                     y: gameConfig.height / 2 - 40,
                     height: 80,
                     width: 10,
-                    speed: 5
+                    speed: 10
                 },
                 score1: 0,
                 score2: 0,
@@ -123,30 +120,32 @@ sockets.on('connection', (socket) => {
     });
 
     socket.on('GameLoaded', () => {
-        const roomId = game.players[socket.id].room;
+        const player = game.players[socket.id];
+        if (!player) {
+          return;
+        }
+        const roomId = player.room;
+        const room = game.rooms[roomId];
+    
+        if (!room) {
+          return;
+        }
+    
         const match = game.match[roomId];
-        const player = 'player' + (game.rooms[roomId].player1 == socket.id ? 1 : 2);
-
-        match[player] = {
-            ...match[player],
-            ready: true
+        const playerIndex = 'player' + (room.player1 == socket.id ? 1 : 2);
+    
+        match[playerIndex] = {
+          ...match[playerIndex],
+          ready: true,
         };
 
-        if(match.player1 !== undefined && match.player2 !== undefined){
-            if (match.player1.ready && match.player2.ready) {
-                match.status = 'PLAY'
-                match.ball = {
-                    width: 5,
-                    xdirection: 1,
-                    ydirection: 1,
-                    xspeed: 2.8,
-                    yspeed: 2.2,
-                    x: gameConfig.width / 2,
-                    y: gameConfig.height / 2
-                };
+        if (match.player1.ready !== null || match.player1.ready !== undefined && match.player2.ready !== null || match.player2.ready !== undefined) {
+            if (match.status !== 'PLAY') {
+              match.status = 'PLAY';
+              rematch(match, roomId);
             }
-        }
-    });
+          }
+    }); 
 
     socket.on('SendKey', ({type, key}) => {
         const socketId = socket.id;
@@ -176,13 +175,16 @@ const leaveRoom = (socket) => {
 
         room[playerNumber] = undefined;
 
-        if(match){
-            if(match.status == 'PLAY'){
+
+            if(match.status !== 'END'){
                 match[playerNumber] = undefined;
-                match.status = 'START';
+                match.status = 'END';
                 match.message = `Player ${game.players[socketId].name} has disconnected.`;
             }
-        }
+            if(!room.player1 && !room.player2){
+                match[playerNumber] = undefined;
+                match.status = 'END';
+            }
         
         if(!room.player1 && !room.player2){
             delete game.rooms[roomId];
@@ -190,38 +192,15 @@ const leaveRoom = (socket) => {
                 delete game.match[roomId]
             }
         }
-
         socket.leave(roomId);
-    }
-}
-
-const leaveMatch = (socket) => {
-
-    const socketId = socket.id;
-    const roomId = game.players[socketId].room;
-    const room = game.rooms[roomId];
-     
-    if(room){
-
-        const match = game.match[roomId];
-
-        if(match.status == 'PLAY' || match.status == 'START'){
-            match.status = 'END';
-        }
-        
-        if(!room.player1 && !room.player2){
-            delete game.rooms[roomId];
-            if (match){
-                delete game.match[roomId]
-            }
-        }
         refreshMatch(roomId);
-        socket.leave(roomId);
-    }
+        refreshRooms();
 
-    leaveRoom(socket);
-    
+    }
 }
+
+
+
 
 const startGame = (socket) => {
     const socketId = socket.id;
@@ -237,7 +216,7 @@ const startGame = (socket) => {
                 y: gameConfig.height / 2 - 40,
                 height: 80,
                 width: 10,
-                speed: 5
+                speed: 8
             },
             player2: { 
                 ready: false,
@@ -245,7 +224,7 @@ const startGame = (socket) => {
                 y: gameConfig.height / 2 - 40,
                 height: 80,
                 width: 10,
-                speed: 5
+                speed: 8
             },
             score1: 0,
             score2: 0,
@@ -261,20 +240,20 @@ const startGame = (socket) => {
 const gameInProgress = (roomId) => {
     const match = game.match[roomId];
     
-    if(!match || match === 'END'){
+    if(!match || match === 'END' || match === 'START' || match === "READY"){
         return;
     }
         
-    switch(match.status) {
-        case 'PLAY':
+
+        if(match.status === 'PLAY'){
             moveBall(match);
             movePaddle(match);
-            checkBallColision(match);
-            break;    
+            checkBallColision(match, roomId);    
         }
-        refreshMatch(roomId);
-        setTimeout(() => gameInProgress(roomId), 1000 / 60);
-    }
+    
+    refreshMatch(roomId);
+    setTimeout(() => gameInProgress(roomId), 1000 / 40);
+}
     
 const moveBall = ({ball} = {}) => {
     const xpos = ball.x + ball.xspeed * ball.xdirection;
@@ -284,37 +263,51 @@ const moveBall = ({ball} = {}) => {
     ball.y = ypos;
 }
 const movePaddle = (match) => {
+
+
     [1, 2].forEach((i) => {
         const player = match[`player${i}`];
-        
-        switch (player.direction) {
-            case 'UP': 
-            player.y -= player.speed;
-            break;
-            case 'DOWN':
-                player.y += player.speed;
-                break;
-        }
-            
-        if (player.y < 0) {
-            player.y = 0;
-        } 
-        else if (player.y + player.height > match.gameConfig.height) {
-            player.y = match.gameConfig.height - player.height;
+
+        if (player !== undefined ) {
+    
+            switch (player.direction) {
+                case 'UP': 
+                    player.y -= player.speed;
+                    break;
+                case 'DOWN':
+                    player.y += player.speed;
+                    break;
+            }
+                
+            if (player.y < 0) {
+                player.y = 0;
+            } 
+            else if (player.y + player.height > match.gameConfig.height) {
+                player.y = match.gameConfig.height - player.height;
+            }
         }
     });
+
+
 }
-const checkBallColision= (match) => {
+const checkBallColision= (match, roomId) => {
     const { ball, gameConfig } = match;
 
-    if(ball.y > gameConfig.height - ball.width || ball.y < ball.width){
-        ball.ydirection *= -1;
+    if (ball.y > gameConfig.height - ball.width) {
+        ball.y = gameConfig.height - ball.width * 2;
+        ball.ydirection = -1;
+      }
+    
+    if (ball.y < ball.width) {
+        ball.y = ball.width * 2;
+        ball.ydirection = 1;
     }
 
     const {x: bx, y: by, width: br} = ball;
     
     const playerNumber = bx < gameConfig.width / 2 ? 1 : 2;
     const player = `player${playerNumber}`;
+    
     const {x: rx, y: ry, width: rw, height:rh } = match[player];
     
     let testX = bx;
@@ -344,22 +337,57 @@ const checkBallColision= (match) => {
     }
     else if(ball.x < ball.width){
         match.score2++;
-        rematch(match);
+        rematch(match, roomId);
     }
     else if(ball.x > gameConfig.width - ball.width){
         match.score1++;
-        rematch(match);
+        rematch(match, roomId);
     }
 }
-const rematch = (match) => {
-    const {ball, gameConfig} = match;
-    ball.xdirection *= -1;
-    ball.x = gameConfig.width / 2;
-    ball.y = gameConfig.height / 2;
-    
+const rematch = (match, roomId) => {
+    match.ball = {
+        ...match.ball,
+        width: 5,
+        xdirection: match.ball ? match.ball.xdirection * -1 : 1,
+        ydirection: 1,
+        xspeed: 6,
+        yspeed: 6 * (match.gameConfig.height / match.gameConfig.width),
+        x: match.gameConfig.width / 2,
+        y: match.gameConfig.height / 2,
+    };
+
+    game.rooms[roomId] = {
+        ...game.rooms[roomId],
+        score1: match.score1,
+        score2: match.score2,
+    };
+
+    if (
+        match.score1 === match.gameConfig.maxScore ||
+        match.score2 === match.gameConfig.maxScore
+    ) {
+        const playerNumber = match.score1 === match.gameConfig.maxScore ? 1 : 2;
+        const playerSocketId = game.rooms[roomId][`player${playerNumber}`];
+        const player = game.players[playerSocketId];
+
+        match.status = 'END';
+        match.message = `${
+            player ? player.name : playerSocketId
+        } won.`;
+        sendMessage(
+            undefined,
+            match.message + ` ${match.score1} x ${match.score2}`
+        );
+    }
+
+    refreshRooms();
 }
 const sendMessage = (player, message) => {
-    sockets.emit('ReceiveMessage', `${player.name}: ${message}`);
+    if (player) {
+        sockets.emit('ReceiveMessage', `${player.name}: ${message}`);
+      } else {
+        sockets.emit('ReceiveMessage', `${message}`);
+      }
 }
 
 const refreshPlayers = () => {
@@ -386,4 +414,4 @@ app.get('/*', function (req, res) {
 });
 
 const PORT = process.env.PORT || 4000;
-server.listen(PORT, () => console.log(`Server rodando na porta ${PORT}!`));
+server.listen(PORT, () => console.log(`Server running in port ${PORT}!`));
