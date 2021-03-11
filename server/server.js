@@ -176,16 +176,14 @@ const leaveRoom = (socket) => {
         room[playerNumber] = undefined;
 
 
-        if(match){}
+        if(match){
             if(match.status !== 'END'){
                 match[playerNumber] = undefined;
                 match.status = 'END';
                 match.message = `Player ${game.players[socketId].name} has disconnected.`;
             }
-        }   
-            if(!room.player1 && !room.player2){
-                match[playerNumber] = undefined;
-            }
+        }    
+
 
         if(!room.player1 && !room.player2){
             delete game.rooms[roomId];
