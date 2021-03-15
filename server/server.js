@@ -2,7 +2,6 @@ import express from "express";
 import http from "http";
 import socketio from "socket.io";
 import path from "path";
-import { match } from "assert";
 
 const app = express();
 const server = http.createServer(app);
@@ -22,6 +21,8 @@ const game = {
 
 
 sockets.on('connection', (socket) => {
+
+    
     console.log(`${socket.id} connected!`)
 
     const name = 'Player ' + socket.id.substr(0, 5);
@@ -30,17 +31,33 @@ sockets.on('connection', (socket) => {
     sendMessage(game.players[socket.id], 'connected!');
     refreshPlayers();
     refreshRooms();
+ 
 
+    socket.on('disconnect', () => {
+        disconnecting(socket);
+    });
 
-    socket.on('disconnect', async () => {
-        sendMessage(game.players[socket.id], 'disconnected.')
-        leaveRoom(socket);
+    const disconnecting = (socket) => {
+        const player = game.players[socket.id];
+        if (player) {
+          console.log(`${player.name} disconnected!`);
+          const playerId = socket.id;
+          game.players[playerId].disconnected = new Date().getTime();
+            removePlayer(socket, playerId);
+        } else {
+          console.log(`${socket.id} disconnected!`);
+        }
+    }
 
-        await setTimeout(() => {delete game.players[socket.id];}, 5000);
-
+    const removePlayer = (fullSocket, playerId) => {
+        sendMessage(game.players[playerId], 'disconnected!');
+        leaveRoom(fullSocket);
+    
+        delete game.players[playerId];
+    
         refreshPlayers();
         refreshRooms();
-    });
+      };
 
     socket.on('SendMessage', (message) => {        
 
@@ -165,8 +182,9 @@ const leaveRoom = (socket) => {
     const socketId = socket.id;
     const roomId = game.players[socketId].room;
     const room = game.rooms[roomId];
-     
+    
     if(room){
+        
         const match = game.match[roomId];
 
         game.players[socketId].room = undefined;
