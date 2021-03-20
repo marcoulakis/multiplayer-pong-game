@@ -7,12 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon server.js"
   },
-  "engines": {
-    "node": "12.20.2"
-  },
+
   "author": "marcoulakis",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "express": "^4.17.1",
     "nodemon": "^2.0.2",

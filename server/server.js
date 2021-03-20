@@ -233,7 +233,7 @@ const startGame = (socket) => {
                 y: gameConfig.height / 2 - 40,
                 height: 80,
                 width: 10,
-                speed: 8
+                speed: 9
             },
             player2: { 
                 ready: false,
@@ -241,7 +241,7 @@ const startGame = (socket) => {
                 y: gameConfig.height / 2 - 40,
                 height: 80,
                 width: 10,
-                speed: 8
+                speed: 9
             },
             score1: 0,
             score2: 0,
@@ -253,11 +253,12 @@ const startGame = (socket) => {
     refreshRooms();
     refreshMatch(roomId);
 }
+let i = 0;
 
 const gameInProgress = (roomId) => {
     const match = game.match[roomId];
     
-    if(!match || match === 'END' || match === 'START' || match === "READY"){
+    if(!match || match.status === 'END'){
         return;
     }
         
@@ -267,9 +268,11 @@ const gameInProgress = (roomId) => {
             movePaddle(match);
             checkBallColision(match, roomId);    
         }
-    
-    refreshMatch(roomId);
-    setTimeout(() => gameInProgress(roomId), 1000 / 40);
+        
+        
+        refreshMatch(roomId);
+        setTimeout(() => gameInProgress(roomId), 1000 / 30);
+        
 }
     
 const moveBall = ({ball} = {}) => {
@@ -362,22 +365,46 @@ const checkBallColision= (match, roomId) => {
     }
 }
 const rematch = (match, roomId) => {
-    match.ball = {
-        ...match.ball,
-        width: 5,
-        xdirection: match.ball ? match.ball.xdirection * -1 : 1,
-        ydirection: 1,
-        xspeed: 6,
-        yspeed: 6 * (match.gameConfig.height / match.gameConfig.width),
-        x: match.gameConfig.width / 2,
-        y: match.gameConfig.height / 2,
-    };
 
+    
+    const xRandom = Math.floor(Math.random() * 2);
+    const yRandom = Math.floor(Math.random() * 2);
+    
     game.rooms[roomId] = {
         ...game.rooms[roomId],
         score1: match.score1,
         score2: match.score2,
     };
+    
+    const playersRoom = game.rooms[roomId];
+    const totalScore = playersRoom.score1 + playersRoom.score2;
+    let speedVariation = 1.3;
+
+    if (totalScore >= 4 && totalScore <= 6) {
+        speedVariation = 2;
+    }else if (totalScore >= 7 && totalScore <= 10) {
+        speedVariation = 2.3
+    }else if (totalScore >= 11){
+        speedVariation = 2.5;
+    }
+    
+    game.match[roomId].player1.speed = 9.5 * (speedVariation + 1);
+    game.match[roomId].player2.speed = 9.5 * (speedVariation + 1);
+
+
+    
+    match.ball = {
+        ...match.ball,
+        width: 5,
+        xdirection: xRandom == 1 ? -1 : 1,
+        ydirection: yRandom == 1 ? -1 : 1,
+        xspeed: 8 * speedVariation,
+        yspeed: (10 * (match.gameConfig.height / match.gameConfig.width) * speedVariation ),
+        x: match.gameConfig.width / 2,
+        y: match.gameConfig.height / 2,
+    };
+
+
 
     if (
         match.score1 === match.gameConfig.maxScore ||
@@ -387,6 +414,9 @@ const rematch = (match, roomId) => {
         const playerSocketId = game.rooms[roomId][`player${playerNumber}`];
         const player = game.players[playerSocketId];
 
+        game.match[roomId].player1.speed = 9;
+        game.match[roomId].player2.speed = 9;
+        
         match.status = 'END';
         match.message = `${
             player ? player.name : playerSocketId
@@ -395,6 +425,7 @@ const rematch = (match, roomId) => {
             undefined,
             match.message + ` ${match.score1} x ${match.score2}`
         );
+        match = undefined;
     }
 
     refreshRooms();

@@ -65,7 +65,6 @@ const GameProvider = (props) => {
     
     useEffect(() =>{
         socket.on('connect', () => {
-            console.log('Connected!');
             dispatch({type: 'CONNECTED', payload: true});
         });
         socket.on('disconnect', () => {

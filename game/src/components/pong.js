@@ -1,8 +1,8 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext} from 'react';
 import PlayerList from './playerList';
 import { Chat } from './chat';
-import { GameContext, sendMessage, quitMatch } from '../context/gameContext';
-import { Card, Container, Alert, Toast, ToastHeader } from 'react-bootstrap';
+import { GameContext, sendMessage } from '../context/gameContext';
+import { Card, Container, Alert, Toast } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.css';
 import Rooms from './rooms'
 import { Game } from './game';
@@ -11,9 +11,6 @@ const Pong = () => {
     const { isConnected, players, messages, match } = useContext(GameContext)
     const { message } = match;
 
-    const [showA, setShowA] = useState(true);
-    const toggleShowA = () => setShowA(!showA);
-    console.log(message);
     return(
         <div className="d-flex flex-row bg-light" style={{margin: '2vh auto', width: '100%', height: '95vh'}}> 
             {!isConnected && 

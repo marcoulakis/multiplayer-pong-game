@@ -36,8 +36,6 @@ const Game = () => {
          
     }, []);
 
-
-
     return (
     
         <div>
