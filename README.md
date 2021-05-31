@@ -1,3 +1,3 @@
-﻿# multiplayer-pong-game
+﻿ # multiplayer-pong-game
 
-##´[Play](https://multiplayerpong.vercel.app/)
+## [Play](https://multiplayerpong.vercel.app/)
